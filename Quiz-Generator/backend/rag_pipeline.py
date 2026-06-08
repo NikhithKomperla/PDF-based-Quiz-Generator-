@@ -1,13 +1,10 @@
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import FAISS
-from langchain_community.embeddings import HuggingFaceEmbeddings
 from llm import get_mistral_response
-import os
 
 def generate_quiz_from_pdf(pdf_path):
     print(f"Processing file: {pdf_path}")
-    
+
     # 1. Load PDF
     try:
         loader = PyPDFLoader(pdf_path)
@@ -21,35 +18,46 @@ def generate_quiz_from_pdf(pdf_path):
         chunk_size=500,
         chunk_overlap=100
     )
+
     chunks = splitter.split_documents(documents)
     print(f"Created {len(chunks)} text chunks")
 
-   # Use first few chunks directly
-context = "\n".join(
-    [chunk.page_content for chunk in chunks[:5]]
-)
-    
-    # 6. RAG Prompt
+    # 3. Use chunks directly (No FAISS, No Embeddings)
+    print("Preparing context...")
+
+    context = "\n".join(
+        [chunk.page_content for chunk in chunks[:10]]
+    )
+
+    # 4. Prompt
     prompt = f"""
 You are an AI quiz generator.
+
 Use ONLY the context below to generate the quiz.
 
 Context:
 {context}
 
 Generate 5 multiple-choice questions based on the context above.
-Output the result in a STRICT JSON format. Do not add any markdown formatting like ```json ... ``` or any other text. Just the raw JSON list.
-The JSON must be a list of objects with this structure:
+
+Output the result in STRICT JSON format.
+
+Do not add markdown formatting.
+Do not add explanations.
+Return only a raw JSON list.
+
+The JSON structure must be:
+
 [
   {{
-    "question": "Question text here",
+    "question": "Question text",
     "options": {{
-      "A": "Option A text",
-      "B": "Option B text",
-      "C": "Option C text",
-      "D": "Option D text"
+      "A": "Option A",
+      "B": "Option B",
+      "C": "Option C",
+      "D": "Option D"
     }},
-    "answer": "Correct Option Key (A, B, C, or D)"
+    "answer": "A"
   }}
 ]
 """
