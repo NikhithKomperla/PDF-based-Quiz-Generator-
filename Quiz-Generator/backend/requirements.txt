@@ -5,5 +5,5 @@ langchain
 langchain-community
 langchain-text-splitters
 pypdf
-mistralai
+mistralai==1.8.2
 python-dotenv
