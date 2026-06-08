@@ -24,21 +24,10 @@ def generate_quiz_from_pdf(pdf_path):
     chunks = splitter.split_documents(documents)
     print(f"Created {len(chunks)} text chunks")
 
-    # 3. Create embeddings
-    print("Loading embedding model...")
-    embeddings = HuggingFaceEmbeddings(
-        model_name="sentence-transformers/all-MiniLM-L6-v2"
-    )
-
-    # 4. Store in FAISS
-    print("Creating vector store...")
-    vector_db = FAISS.from_documents(chunks, embeddings)
-
-    # 5. Retrieve relevant chunks
-    retriever = vector_db.as_retriever(search_kwargs={"k": 3})
-    docs = retriever.invoke("Generate quiz questions based on the content")
-
-    context = "\n".join([d.page_content for d in docs])
+   # Use first few chunks directly
+context = "\n".join(
+    [chunk.page_content for chunk in chunks[:5]]
+)
     
     # 6. RAG Prompt
     prompt = f"""
